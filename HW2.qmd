@@ -1,0 +1,53 @@
+---
+title: "Homework Assignment 2: Exploring patterns of environmental justice"
+format: html
+---
+
+Instructions here: <https://eds-223-geospatial.github.io/assignments/HW2.html>
+
+HINT: LOOK UP CRS IN METADATA!
+
+# Setup
+```{r}
+library(tidyverse)
+library(sf)
+library(tmap)
+library(here)
+
+# load in data 
+#ejscreen
+ej <- st_read(here::here("data", "ejscreen", "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"))
+# holc
+holc <- st_read(here::here("data", "mapping-inequality", "mapping-inequality-los-angeles.json"))
+# bird
+bird <- st_read(here::here("data", "gbif-birds-LA", "gbif-birds-LA.shp"))
+
+```
+
+
+# Part 1: Setup
+
+```{r}
+# check out my ej data
+
+```
+
+
+# Part 1.1
+
+Create a map of historical redlining neighborhoods
+
+```{r}
+# include neighborhoods colored by HOLC grade
+# an appropriate base map
+# a clear title and legend
+
+# ensure I have:
+# an informative title
+# legends with legible titles, including units
+# for maps: indication of scale and orientation (i.e. graticules/gridlines or scale bar and compass)
+# basemap included where necessary
+
+```
+
+
