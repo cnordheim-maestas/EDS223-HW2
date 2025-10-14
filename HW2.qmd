@@ -1,5 +1,7 @@
 ---
 title: "Homework Assignment 2: Exploring patterns of environmental justice"
+author: "Caitlin Nordheim-Maestas"
+date: "`r Sys.Date()`"
 format: html
 ---
 
@@ -8,46 +10,122 @@ Instructions here: <https://eds-223-geospatial.github.io/assignments/HW2.html>
 HINT: LOOK UP CRS IN METADATA!
 
 # Setup
+
 ```{r}
+#| message: false
+#| warning: false
+
 library(tidyverse)
 library(sf)
 library(tmap)
 library(here)
+library(viridisLite) # colors
+library(janitor)
+library(kableExtra) # pretty table
 
 # load in data 
 #ejscreen
 ej <- st_read(here::here("data", "ejscreen", "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"))
+# check valid
+unique(st_is_valid(ej)) # yay
+
 # holc
-holc <- st_read(here::here("data", "mapping-inequality", "mapping-inequality-los-angeles.json"))
+holc <- st_read(here::here("data", "mapping-inequality", "mapping-inequality-los-angeles.json")) %>% 
+  st_make_valid()
+
+# check and make valid
+unique(st_is_valid(holc)) # yay!
+
+
 # bird
 bird <- st_read(here::here("data", "gbif-birds-LA", "gbif-birds-LA.shp"))
-
+# check and make valid
+unique(st_is_valid(bird)) # yay!
 ```
 
 
-# Part 1: Setup
-
-```{r}
-# check out my ej data
-
-```
-
+# Part 1
 
 # Part 1.1
 
 Create a map of historical redlining neighborhoods
 
 ```{r}
-# include neighborhoods colored by HOLC grade
-# an appropriate base map
-# a clear title and legend
+#| message: false
+#| warning: false
+#| fig-height: 6
+#| fig-width: 6
 
-# ensure I have:
-# an informative title
-# legends with legible titles, including units
-# for maps: indication of scale and orientation (i.e. graticules/gridlines or scale bar and compass)
-# basemap included where necessary
+m1.1 <- tm_shape(holc) + # import holc geo data
+  tm_basemap("Esri.WorldGrayCanvas") + # dull background that still has geo info
+  tm_graticules() + # to get our bearings
+  # fill by HOLC "grade" assigned
+  tm_fill(fill = "grade", # each hold grade a different color
+          fill.scale = tm_scale(values =  # assigning colors manually to match the historical figures
+                                  c("green", "blue", "yellow", "pink", "black")),
+          # this matches historical redlining maps in the metadata
+          fill.legend = tm_legend(title = "HOLC Grade")) +
+   tm_borders(col = "black", lwd = 0.5) + # makes it look more refined with borders
+  tm_title("HOLC Grade Designations in Los Angeles") + # add title
+# add map elements
+  tm_compass(show.labels = 1, position = c("right","top")) + # compas
+  tm_scalebar(position = c("right", "bottom")) + # scalebar
+  tm_credits("Data Source: Digital Scholarship Lab", position = c("right", "bottom")) # data credits
 
+m1.1
 ```
+
+## Part 1.2
+
+Create a table summarizing:
+
+- the percentage of census block groups that fall within each HOLC grade
+
+- Also include the percent of census black groups that don’t fall within a HOLC grade
+
+- Hint: The HOLC data contains the grades and the EJScreen data contains the census blocks, so you will need to combine the data spatially before doing summary statistics. Once you combine and no longer need the geometries, you can use st_drop_geometry().
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 6
+#| fig-width: 6
+
+# filter ej data to just LA county
+ej.la <- ej %>%
+  filter(CNTY_NAME == "Los Angeles County")
+
+# crs check!!
+# st_crs(ej.la) == st_crs(holc) # false
+ej.la <- st_transform(ej.la, crs= st_crs(holc)) # set to same as holc
+# st_crs(ej.la) == st_crs(holc) # true, yay!
+
+# JOIN 
+# join x,y adds y columns to x
+ej_holc <- st_join(ej.la, holc) %>%
+  clean_names() %>% # bc the caps are driving me crazy
+  st_drop_geometry() # no longer needed
+
+### summary stats
+# the percentage of "census block groups" that fall within each HOLC grade
+# percent of census block groups that don’t fall within a HOLC grade
+# total rows #nrow(ej_holc) # 8988
+ej_holc %>% 
+  group_by(grade) %>% 
+  # number in this group/ total rows *100 %
+  #rounded to 2 decimal places
+ summarise(
+    Percent = round((n() / 8988) * 100, 2)) %>% 
+  mutate(Percent = paste0(Percent, "%")) %>% 
+  st_drop_geometry() %>% 
+  # pretty table
+  kbl(booktabs = T, caption = "Census block groups and percent") %>%
+  kable_styling(latex_options = "striped")
+```
+
+
+
+
+
 
 
