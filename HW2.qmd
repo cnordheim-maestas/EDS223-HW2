@@ -5,10 +5,6 @@ date: "`r Sys.Date()`"
 format: html
 ---
 
-Instructions here: <https://eds-223-geospatial.github.io/assignments/HW2.html>
-
-HINT: LOOK UP CRS IN METADATA!
-
 # Setup
 
 ```{r}
@@ -25,22 +21,29 @@ library(kableExtra) # pretty table
 
 # load in data 
 #ejscreen
-ej <- st_read(here::here("data", "ejscreen", "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"))
+ej <- st_read(here::here("data", "ejscreen", "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"),  quiet = TRUE)
 # check valid
-unique(st_is_valid(ej)) # yay
+unique(st_is_valid(ej)) # TRUE, yay
 
 # holc
-holc <- st_read(here::here("data", "mapping-inequality", "mapping-inequality-los-angeles.json")) %>% 
-  st_make_valid()
-
-# check and make valid
-unique(st_is_valid(holc)) # yay!
-
+holc <- st_read(here::here("data", "mapping-inequality", "mapping-inequality-los-angeles.json"), quiet = TRUE) %>% 
+  st_make_valid() # was not valid before, is now
+unique(st_is_valid(holc)) # TRUE, yay!
 
 # bird
-bird <- st_read(here::here("data", "gbif-birds-LA", "gbif-birds-LA.shp"))
+bird <- st_read(here::here("data", "gbif-birds-LA", "gbif-birds-LA.shp"), quiet = TRUE)
 # check and make valid
-unique(st_is_valid(bird)) # yay!
+unique(st_is_valid(bird)) # TRUE, yay
+
+# let's make a custom, colorblind-friendly color palette for the grades
+# hex codes come from colorblind-friendly Paul Tol color palette (the "bright" one)
+grade_colors <-c(
+  "A"  = "#228833",
+  "B"  = "#4477AA",
+  "C"  = "#CCBB44",
+  "D"  =  "#EE6677",
+  "NA" = "black",
+  "NA_real" = "black")
 ```
 
 
@@ -62,8 +65,9 @@ m1.1 <- tm_shape(holc) + # import holc geo data
   # fill by HOLC "grade" assigned
   tm_fill(fill = "grade", # each hold grade a different color
           fill.scale = tm_scale(values =  # assigning colors manually to match the historical figures
-                                  c("green", "blue", "yellow", "pink", "black")),
+                                 grade_colors),
           # this matches historical redlining maps in the metadata
+          # and is colorblind friendly^^
           fill.legend = tm_legend(title = "HOLC Grade")) +
    tm_borders(col = "black", lwd = 0.5) + # makes it look more refined with borders
   tm_title("HOLC Grade Designations in Los Angeles") + # add title
@@ -96,9 +100,14 @@ ej.la <- ej %>%
   filter(CNTY_NAME == "Los Angeles County")
 
 # crs check!!
-# st_crs(ej.la) == st_crs(holc) # false
+# CRS custom warning messages
+if(st_crs(ej.la) != st_crs(holc)){
+  warning("coordinate refrence systems do not match")}
+
+# let;s fix it
+st_crs(ej.la) == st_crs(holc) # false
 ej.la <- st_transform(ej.la, crs= st_crs(holc)) # set to same as holc
-# st_crs(ej.la) == st_crs(holc) # true, yay!
+st_crs(ej.la) == st_crs(holc) # true, yay!
 
 # JOIN 
 # join x,y adds y columns to x
@@ -153,34 +162,55 @@ means <- ej_holc %>%
 means %>%  
   ggplot(aes(x = grade, y = pct_low_income, fill = grade)) + # color by grade for fun
   geom_col() + # bar chart
+  scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
     y = "Percent Low Income Within Grade (%)", # percent 
     title = "Mean low income by HOLC grade") + # add title
-  theme_minimal() + # clean theme
+  theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
 
 ### PM
 means %>%  
   ggplot(aes(x = grade, y = pm25_mean, fill = grade)) + # color by grade for fun
   geom_col() + # bar chart
+  scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
     y = "Percentile of PM 2.5 Pollution",
     title = "Particulate Matter Pollution by HOLC grade") + # add title
-  theme_minimal() + # clean theme
+  theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
 
 ### life expectancy
 means %>%  
   ggplot(aes(x = grade, y = pct_le, fill = grade)) + # color by grade for fun
   geom_col() + # bar chart
+  scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
     y = "Percent Low Life Expectancy Within Grade (%)",
     title = "Low Life Expectancy by HOLC grade") + # add title
-  theme_minimal() + # clean theme
+  theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
+
+## for fun, let's mix it up, 2 numeric variables and grade grouping
+means %>%  
+  ggplot(aes(x = grade, y = pct_le, color = pm25_mean)) + # color by grade for fun
+  geom_point(size = 10) + 
+  labs(
+    x = "HOLC Grade", # grade on x
+    y = "Percent Low Life Expectancy Within Grade (%)", # low life expectancy on y
+    title = "Low Life Expectancy & PM 2.5 by HOLC grade", # title
+    color = "PM 2.5 Percentile" ) + # for legend title
+  scale_color_viridis_c( 
+    option = "plasma",   # blueish to yellow
+    breaks = seq(20, 60, by = 5) ) +  # specify legend breaks
+  theme_light() + # clean theme
+    theme( # legend specs
+    legend.position = "right",
+    legend.title = element_text(face = "bold", size = 11),
+    legend.text = element_text(size = 10))
 ```
 
 ## Part 1.4 (COME BACK TO THIS)
@@ -192,8 +222,93 @@ means %>%
 - Discuss potential relationships between historical redlining grades and current environmental/socioeconomic conditions
 
 
+# Part 2
 
+A figure summarizing the percent of observations within redlined neighborhoods within each HOLC grade
 
+Create a visualizations that shows:
+
+The percentage of bird observations within each HOLC grade
+Include an appropiate title, axis labels, and legend
+Hints: Ensure the bird observations and HOLC dataset have matching CRS’, then perform a spatial join to assign each bird observations to a corresponding HOLC grade.
+
+## Part 2 setup
+
+```{r}
+## crs check for bird data
+if(st_crs(bird) != st_crs(holc)){
+  warning("coordinate refrence systems do not match")}
+
+# double check
+st_crs(bird) == st_crs(holc) # true, all good!
+
+# checked in first chunk if the geometry is valid
+# exploratory vis of the data (commented out to avoid uneeded plots for Ale when grading)
+Quick_vis_birds <- tm_shape(holc) + # import holc geo data
+  tm_basemap("Esri.WorldGrayCanvas") + # dull background that still has geo info
+  tm_graticules() + # to get our bearings
+  tm_basemap("Esri.WorldGrayCanvas") + # dull background that still has geo info
+  tm_graticules() + # to get our bearings
+  # fill by HOLC "grade" assigned
+  tm_fill(fill = "grade", # each hold grade a different color
+          fill.scale = tm_scale(values =  # assigning colors manually to match the historical figures
+                                 grade_colors),
+          # this matches historical redlining maps in the metadata
+          fill.legend = tm_legend(title = "HOLC Grade")) +
+   tm_borders(col = "black", lwd = 0.5) +
+   tm_shape(bird) +
+  tm_symbols(fill = "red" , fill_alpha = 0.2, size = 0.2)
+#Quick_vis_birds # <- exploratory so commented out
+
+# join the holc and bird spatially
+bird_holc <- st_join(holc, bird) # keep only bird observations that occur in holc
+# check it worked
+# head(bird_holc) commented out for a clean markdown, but it worked
+
+# to calculate the percent we need the total obs
+nrow(bird_holc) # 135,682 observations of birds within holc
+
+birdholc_summary <- bird_holc %>% 
+  group_by(grade) %>% 
+  summarise(
+  percent = round((n() / 135682) * 100, 2)) %>% 
+  mutate(percent = paste0(percent, "%")) %>% 
+  st_drop_geometry() 
+
+# pretty table (commented out to save Ale time from reading uneeded things)
+# birdholc_summary %>% 
+#     kbl(booktabs = T, caption = "Percent of bird observations\nin each HOLC grade") %>%
+#   kable_styling(latex_options = "striped")
+
+```
+
+## Part 2.1
+
+```{r}
+#| message: false
+#| warning: false
+#| fig-height: 6
+#| fig-width: 6
+#|
+birdholc_summary %>%  
+  ggplot(aes(x = grade, y = percent, fill = grade)) + # color by grade for fun
+  geom_col() + # bar chart
+  scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
+  labs(
+    x = "HOLC Grade", # grade on x
+    y = "Mean Percent of Bird Observations",
+    title = "Bird Observations by HOLC grade") + # add title
+  theme_light() + # clean theme
+  theme(legend.position = "none") # legend does not add anything just fun colors
+```
+
+## Part 2.2 (COME BACK)
+
+Why might we have obtained different results in our analysis? What did the paper consider that we did not?
+
+Paper found more bird obs in A than the rest, b,c,d look the same
+
+we did not account for any important covariates like differences  in  present  day  vegetation,  open  space,  population  density
 
 
 
