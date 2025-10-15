@@ -36,6 +36,6 @@ I will be the sole author and contributor to this homework assignment. The assig
 
 EJScreen: United States Environmental Protection Agency. 2023 version. EJSCREEN. Retrieved: 2023 from \<www.epa.gov/ejscreen\>
 
-GBIF.org (2025), GBIF Occurrence Data. Available from: <https://www.gbif.org> [14 October 2025].
+GBIF.org (n.d.), GBIF Occurrence Data. Available from: <https://www.gbif.org>
 
 HOLC: Robert K. Nelson, LaDale Winling, Richard Marciano, Nathan Connolly, et al., “Mapping Inequality,” American Panorama, ed. Robert K. Nelson and Edward L. Ayers, accessed October 17, 2023, <https://dsl.richmond.edu/panorama/redlining/>
