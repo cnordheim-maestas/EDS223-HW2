@@ -275,6 +275,8 @@ Quick_vis_birds <- tm_shape(holc) + # import holc geo data
 #Quick_vis_birds # <- exploratory so commented out
 
 # join the holc and bird spatially
+# note: this is one method to do this, st_join + group_by OR
+# aggregate(x = ..., by = ..., FUN = mean)
 bird_holc <- st_join(holc, bird) # keep only bird observations that occur in holc
 # check it worked
 # head(bird_holc) commented out for a clean markdown, but it worked
@@ -283,11 +285,11 @@ bird_holc <- st_join(holc, bird) # keep only bird observations that occur in hol
 nrow(bird_holc) # 135,682 observations of birds within holc
 
 birdholc_summary <- bird_holc %>% 
-  group_by(grade) %>% 
+  group_by(grade) %>% # within each holc grade calculate:
   summarise(
-  percent = round((n() / 135682) * 100, 2)) %>% 
-  mutate(percent = paste0(percent, "%")) %>% 
-  st_drop_geometry() 
+  percent = round((n() / 135682) * 100, 2)) %>% # the percent of bird obs
+  mutate(percent = paste0(percent, "%")) %>% # to make pretty output make it a string of tha value + % size
+  st_drop_geometry() # dont need anymore
 
 # pretty table (commented out to save Ale time from reading uneeded things)
 # birdholc_summary %>% 
