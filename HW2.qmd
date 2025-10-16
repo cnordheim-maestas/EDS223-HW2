@@ -18,6 +18,7 @@ library(here)
 library(viridisLite) # colors
 library(janitor)
 library(kableExtra) # pretty table
+library(patchwork) # combine plots
 
 # load in data 
 #ejscreen
@@ -142,7 +143,7 @@ percentile for Particulate Matter 2.5
 percentile for low life expectancy
 Use ggplot for your visualizations! You will first need to calculate mean of each variable grouped by HOLC grade.
 
-```{r}
+```{r fig.cap=""}
 #| message: false
 #| warning: false
 #| fig-height: 6
@@ -159,44 +160,56 @@ means <- ej_holc %>%
              mutate(pct_le = life_exp_pct_mean * 100)
 
 ### Low Income plot
-means %>%  
+low_income <- means %>%  
   ggplot(aes(x = grade, y = pct_low_income, fill = grade)) + # color by grade for fun
   geom_col() + # bar chart
   scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
     y = "Percent Low Income Within Grade (%)", # percent 
-    title = "Mean low income by HOLC grade") + # add title
+    title = "Low Income") + # add title
   theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
 
 ### PM
-means %>%  
+pm <- means %>%  
   ggplot(aes(x = grade, y = pm25_mean, fill = grade)) + # color by grade for fun
   geom_col() + # bar chart
   scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
     y = "Percentile of PM 2.5 Pollution",
-    title = "Particulate Matter Pollution by HOLC grade") + # add title
+    title = "PM Pollution") + # add title
   theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
 
 ### life expectancy
-means %>%  
+le <- means %>%  
   ggplot(aes(x = grade, y = pct_le, fill = grade)) + # color by grade for fun
   geom_col() + # bar chart
   scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
-    y = "Percent Low Life Expectancy Within Grade (%)",
-    title = "Low Life Expectancy by HOLC grade") + # add title
+    y = "Low LifeExpectancy",
+    title = "Low Life\nExpectancy") + # add title
   theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
 
-## for fun, let's mix it up, 2 numeric variables and grade grouping
+# combine with patchwork and label a, b, c
+barplot <- (low_income | pm | le) +
+  plot_annotation(tag_levels = "A") +
+    plot_annotation(
+    title = "Conditions Within HOLC Grade",
+    tag_levels = "A"
+  ) &
+  theme(plot.tag = element_text(size = 14, face = "bold"))
+barplot
+```
+
+```{r fig.cap=""}
+## mulitvariate plot
 means %>%  
-  ggplot(aes(x = grade, y = pct_le, color = pm25_mean)) + # color by grade for fun
+  ggplot(aes(x = grade, y = pct_le, color = pm25_mean)) + # color by pm 2.5
   geom_point(size = 10) + 
   labs(
     x = "HOLC Grade", # grade on x
@@ -212,6 +225,7 @@ means %>%
     legend.title = element_text(face = "bold", size = 11),
     legend.text = element_text(size = 10))
 ```
+
 
 ## Part 1.4 (COME BACK TO THIS)
 
@@ -284,7 +298,7 @@ birdholc_summary <- bird_holc %>%
 
 ## Part 2.1
 
-```{r}
+```{r fig.cap=""}
 #| message: false
 #| warning: false
 #| fig-height: 6
