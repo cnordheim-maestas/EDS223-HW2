@@ -22,21 +22,27 @@ library(patchwork) # combine plots
 
 # load in data 
 #ejscreen
-ej <- st_read(here::here("data", "ejscreen", "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"),  quiet = TRUE)
+ej <- st_read(here::here("data", "ejscreen", 
+                         "EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb"),
+              quiet = TRUE) # hide the message
 # check valid
 unique(st_is_valid(ej)) # TRUE, yay
 
 # holc
-holc <- st_read(here::here("data", "mapping-inequality", "mapping-inequality-los-angeles.json"), quiet = TRUE) %>% 
+holc <- st_read(here::here("data", "mapping-inequality",
+                           "mapping-inequality-los-angeles.json")
+                , quiet = TRUE) %>% # hide the message
   st_make_valid() # was not valid before, is now
 unique(st_is_valid(holc)) # TRUE, yay!
 
 # bird
-bird <- st_read(here::here("data", "gbif-birds-LA", "gbif-birds-LA.shp"), quiet = TRUE)
+bird <- st_read(here::here("data", "gbif-birds-LA",
+                           "gbif-birds-LA.shp"),
+                quiet = TRUE) # hide the message
 # check and make valid
 unique(st_is_valid(bird)) # TRUE, yay
 
-# let's make a custom, colorblind-friendly color palette for the grades
+# let's make a custom, **colorblind-friendly*** color palette for the grades
 # hex codes come from colorblind-friendly Paul Tol color palette (the "bright" one)
 grade_colors <-c(
   "A"  = "#228833",
@@ -54,7 +60,7 @@ grade_colors <-c(
 
 Create a map of historical redlining neighborhoods
 
-```{r}
+```{r fig.cap="Figure 1. Visualizing HOLC grades assigned to Los Angeles, CA. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the Missing category."}
 #| message: false
 #| warning: false
 #| fig-height: 6
@@ -90,7 +96,7 @@ Create a table summarizing:
 
 - Hint: The HOLC data contains the grades and the EJScreen data contains the census blocks, so you will need to combine the data spatially before doing summary statistics. Once you combine and no longer need the geometries, you can use st_drop_geometry().
 
-```{r}
+```{r fig.cap="Table 1. Comparing the percent of census blocks in each HOLC Grade in Los Angeles, CA. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category."}
 #| message: false
 #| warning: false
 #| fig-height: 6
@@ -143,7 +149,7 @@ percentile for Particulate Matter 2.5
 percentile for low life expectancy
 Use ggplot for your visualizations! You will first need to calculate mean of each variable grouped by HOLC grade.
 
-```{r fig.cap=""}
+```{r fig.cap="Figure 2. Comparing environmental conditions across HOLC grades. This figure compares (A) the percent of low income folks, (B) the percentile of Particulate Matter 2.5 (PM 2.5) pollution exposure, and (C) the percent of folks with a low life expectancy, all visualized per HOLC grade. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category. Each barchart depicts the mean value for each HOLC grade, The colors do not differentiate differences, but are colored by historical maps of HOLC grades for aethestic."}
 #| message: false
 #| warning: false
 #| fig-height: 6
@@ -190,7 +196,7 @@ le <- means %>%
   scale_fill_manual(values = grade_colors, na.value = "black") + # custom, colorblind friendly colors
   labs(
     x = "HOLC Grade", # grade on x
-    y = "Low LifeExpectancy",
+    y = "Percent Low Life Expectancy Within Grade (%)",
     title = "Low Life\nExpectancy") + # add title
   theme_light() + # clean theme
   theme(legend.position = "none") # legend does not add anything just fun colors
@@ -206,7 +212,7 @@ barplot <- (low_income | pm | le) +
 barplot
 ```
 
-```{r fig.cap=""}
+```{r fig.cap="Figure 3. Comparing environmental conditions across HOLC grades. This figure visualizes the percent of low income folks on the y axis, and the points are colored by the percentile of Particulate Matter 2.5 (PM 2.5) pollution exposure, with yellows being higher and blues being lower, compared across HOLC grades. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category. Each value depicts the mean value for each HOLC grade."}
 ## mulitvariate plot
 means %>%  
   ggplot(aes(x = grade, y = pct_le, color = pm25_mean)) + # color by pm 2.5
@@ -227,13 +233,9 @@ means %>%
 ```
 
 
-## Part 1.4 (COME BACK TO THIS)
+## Part 1.4
 
-- Write a brief paragraph reflecting on these results
-
-- Interpret the patterns you observe in your results
-
-- Discuss potential relationships between historical redlining grades and current environmental/socioeconomic conditions
+The environmental conditions follow a very similar trend across HOLC grades, which is that the environmental conditions get worse with each "lower" HOLC grade (Fig 1). While extremely unjust, this is not unexpected, as the lower historical "grades" set these areas on an economic trajectory, with higher grades getting more wealthy people and more attention from the government. The percent low income (Fig 1A) trend may be due to their properties not being worth as much, thus, not allowing economic advancement or the ability to build generational wealth. Having a low income in America, unfortunately, does tend to lead to lesser health outcomes and a lower life expectancy, as seen in Fig 1C. The second figure demonstrates the the intersection of particulate matter pollution and the low life expectancy (Fig 2). As the HOLC grade decreases, the pollution exposure increases, and the percent of folks with a lower life expectancy does as well. Though it is important to note that no causal statistical analysis was done with these two variables, the correlation points to the possibility of the increase of PM 2.5 pollution may also be leading to a lower life expectancy. Regardless of causality, this data shows clearly that areas that were historically redlined need more attention, and assistance, especially for adverse health outcomes, economic improvements, and reduction of pollution. 
 
 
 # Part 2
@@ -300,7 +302,7 @@ birdholc_summary <- bird_holc %>%
 
 ## Part 2.1
 
-```{r fig.cap=""}
+```{r fig.cap="Figure 4. Comparing bird observations across HOLC grades. This figure compares the percent of total bird observations in LA per HOLC grade. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category. Each bardepicts the mean value of the percent of observations for each HOLC grade, The colors do not differentiate differences, but are colored by historical maps of HOLC grades for aethestic."}
 #| message: false
 #| warning: false
 #| fig-height: 6
@@ -318,13 +320,9 @@ birdholc_summary %>%
   theme(legend.position = "none") # legend does not add anything just fun colors
 ```
 
-## Part 2.2 (COME BACK)
+## Part 2.2
 
-Why might we have obtained different results in our analysis? What did the paper consider that we did not?
-
-Paper found more bird obs in A than the rest, b,c,d look the same
-
-we did not account for any important covariates like differences  in  present  day  vegetation,  open  space,  population  density
+Our analysis did not account for any covariates within the HOLC grades, but the paper did. The paper accounted for differences in vegetation, open space, and population density, which can all clearly impact the number of bird observations aside from the HOLC grade. Vegetation and open space likely increase chances of seeing birds within a city, and population density could be impacting the birds, or it could also be impacting the chance of there being more bird observations by people. If we wanted to mirror the paper, we would need to extract further information for each area with a HOLC grade, likely from some census data for population density, perhaps Sentinel 2 data for for vegetation, and a map of open space, likely from urban ecologists or city planners. 
 
 
 
