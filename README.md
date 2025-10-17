@@ -39,3 +39,20 @@ EJScreen: United States Environmental Protection Agency. 2023 version. EJSCREEN.
 GBIF.org (n.d.), GBIF Occurrence Data. Available from: <https://www.gbif.org>
 
 HOLC: Robert K. Nelson, LaDale Winling, Richard Marciano, Nathan Connolly, et al., “Mapping Inequality,” American Panorama, ed. Robert K. Nelson and Edward L. Ayers, accessed October 17, 2023, <https://dsl.richmond.edu/panorama/redlining/>
+
+# Repository structure
+
+```
+├── data
+│   ├── ejscreen
+│   │   ├── EJSCREEN_2023_BG_Columns.xlsx
+│   │   ├── EJSCREEN_2023_BG_StatePct_with_AS_CNMI_GU_VI.gdb
+│   │   └── ejscreen-tech-doc-version-2-2.pdf
+│   ├── gbif-birds-LA
+│   │   ├── gbif-birds-LA.dbf
+│   │   ├── gbif-birds-LA.prj
+│   │   ├── gbif-birds-LA.shp
+│   │   └── gbif-birds-LA.shx
+│   └── mapping-inequality
+│       └── mapping-inequality-los-angeles.json
+```
