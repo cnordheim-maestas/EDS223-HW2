@@ -83,9 +83,9 @@ m1.1 <- tm_shape(holc) + # import holc geo data
           fill.legend = tm_legend(title = "HOLC Grade")) +
    tm_borders(col = "black", lwd = 0.5) + # makes it look more refined with borders
   tm_title("HOLC Grade Designations in Los Angeles") + # add title
-# add map elements
-  tm_compass(show.labels = 1, position = c("right","top")) + # compas
-  tm_scalebar(position = c("right", "bottom")) + # scalebar
+# comment out compass and scalebar, they are redundant with the graticules
+ # tm_compass(show.labels = 1, position = c("right","top")) + # compas
+  #tm_scalebar(position = c("right", "bottom")) + # scalebar
   tm_credits("Data Source: Digital Scholarship Lab", position = c("right", "bottom")) # data credits
 
 m1.1
@@ -101,7 +101,7 @@ Create a table summarizing:
 
 I am first going to filter the `ej` enviornmental data to just Los Angeles county to get `ej.la`. Next, I will check the CRS for `ej.la` and the `holc` data and if they are not the same, will convert them to the same crs.
 
-```{r fig.cap="Table 1. Comparing the percent of census blocks in each HOLC Grade in Los Angeles, CA. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category."}
+```{r}
 #| message: false
 #| warning: false
 #| fig-height: 6
@@ -134,7 +134,7 @@ ej_holc <- st_join(ej.la, holc) %>%
 
 Now let's calculate the summary statistics. This is no longer spatial, so classic tidyverse data wrangling here. I will make a pretty table using `kbl`, my go to pretty table package. 
 
-```{r}
+```{r fig.cap="Table 1. Comparing the percent of census blocks in each HOLC Grade in Los Angeles, CA. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category."}
 #| message: false
 #| warning: false
 
@@ -235,7 +235,9 @@ barplot
 
 Now let's do a multivariate plot, with one variable on the y axis and one variable shown by color. Of course, we will use a continuous ad colorblind friendly palette. 
 
-```{r fig.cap="Figure 3. Comparing environmental conditions across HOLC grades. This figure visualizes the percent of low income folks on the y axis, and the points are colored by the percentile of Particulate Matter 2.5 (PM 2.5) pollution exposure, with yellows being higher and blues being lower, compared across HOLC grades. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category. Each value depicts the mean value for each HOLC grade."}
+I will use viridis magma, where the default is that darker colors mean lower values and brighter values mean higher values. *However, after getting feedback on previous homework, it was requested that darker values mean higher numbers, so I will reverse the default color scale*
+
+```{r fig.cap="Figure 3. Comparing environmental conditions across HOLC grades. This figure visualizes the percent of low income folks on the y axis, and the points are colored by the percentile of Particulate Matter 2.5 (PM 2.5) pollution exposure, compared across HOLC grades. HOLC grades are from A-D, and some areas were not assigned HOLC grades, which fall into the NA category. Each value depicts the mean value for each HOLC grade."}
 ## mulitvariate plot
 means %>%  
   ggplot(aes(x = grade, y = pct_le, color = pm25_mean)) + # color by pm 2.5
@@ -246,7 +248,8 @@ means %>%
     title = "Low Life Expectancy & PM 2.5 by HOLC grade", # title
     color = "PM 2.5 Percentile" ) + # for legend title
   scale_color_viridis_c( 
-    option = "plasma",   # blueish to yellow
+    option = "plasma",   
+    direction = -1, # reverse the color scale per Ale's request on HW1
     breaks = seq(20, 60, by = 5) ) +  # specify legend breaks
   theme_light() + # clean theme
     theme( # legend specs
@@ -275,7 +278,7 @@ Hints: Ensure the bird observations and HOLC dataset have matching CRS’, then 
 
 I will start by wrangling the CRS to ensure it is the same in the bird data and the holc data. Next, I will make an exploratory plot of the data. It takes forever to run and is not part of the assignment so it is commented out. 
 
-Next, I will join the data again using `st_join`, so I have data from both dataframes. 
+Next, I will join the data again using `st_join`, so I have data from both dataframes. I also did an exploratory look at the maps but commented it our because it takes forever to run and is not part of the assignment. 
 
 ```{r}
 ## crs check for bird data
@@ -288,8 +291,6 @@ st_crs(bird) == st_crs(holc) # true, all good!
 # checked in first chunk of themarkdown if the geometry is valid
 # exploratory vis of the data (commented out to avoid uneeded plots for Ale when grading)
 Quick_vis_birds <- tm_shape(holc) + # import holc geo data
-  tm_basemap("Esri.WorldGrayCanvas") + # dull background that still has geo info
-  tm_graticules() + # to get our bearings
   tm_basemap("Esri.WorldGrayCanvas") + # dull background that still has geo info
   tm_graticules() + # to get our bearings
   # fill by HOLC "grade" assigned
